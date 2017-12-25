@@ -1,54 +1,54 @@
-#include<cstdio>
+#include <cstdio>
 class Node {
 public:
     int value;
     Node* next;
-    Node(int x):value(x),next(nullptr){}
+    Node(int x) : value(x), next(nullptr) {}
 };
 
 Node* merge(Node* begin, int n) {
-    if(n == 1)
+    if (n == 1)
         return begin;
-    int mid = n/2;
-    Node* cur = begin;
+    int mid = n / 2;
+    Node* left = begin;
     int term = 1;
-    while(term != mid){
-        cur = cur->next;
+    while (term != mid){
+        left = left->next;
         term++;
     }
-    Node* cur2 = cur->next;
-    cur->next = nullptr;
-    cur = merge(begin, mid);
-    cur2 = merge(cur2, n - mid);
+    Node* right = left->next;
+    left->next = nullptr;
+    left = merge(begin, mid);
+    right = merge(right, n - mid);
     Node* ans;
-    if (cur->value <= cur2->value) {
-        ans = cur;
-        cur=cur->next;
+    if (left->value <= right->value) {
+        ans = left;
+        left=left->next;
     } else {
-        ans = cur2;
-        cur2 = cur2->next;
+        ans = right;
+        right = right->next;
     }
-    Node* cur3 = ans;
-    while (cur != nullptr && cur2 != nullptr) {
-        if (cur->value <= cur2->value) {
-            cur3->next = cur;
-            cur3 = cur;
-            cur=cur->next;
+    Node* last = ans;
+    while (left != nullptr && right != nullptr) {
+        if (left->value <= right->value) {
+            last->next = left;
+            last = left;
+            left=left->next;
         } else {
-            cur3->next = cur2;
-            cur3 = cur2;
-            cur2=cur2->next;
+            last->next = right;
+            last = right;
+            right=right->next;
         }
     }
-    while (cur != nullptr) {
-        cur3->next = cur;
-        cur3 = cur;
-        cur=cur->next;
+    while (left != nullptr) {
+        last->next = left;
+        last = left;
+        left=left->next;
     }
-    while (cur2 != nullptr) {
-        cur3->next = cur2;
-        cur3 = cur2;
-        cur2=cur2->next;
+    while (right != nullptr) {
+        last->next = right;
+        last = right;
+        right=right->next;
     }
     return ans;
 }
