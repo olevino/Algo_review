@@ -1,26 +1,31 @@
 #include <cstdio>
-class Node {
+#include <iostream>
+
+template <typename T>
+    class Node{
 public:
-    int value;
+    T value;
     Node* next;
-    Node(int x) : value(x), next(nullptr) {}
+    Node(T x) : value(x), next(nullptr) {}
 };
 
-Node* merge(Node* begin, int n) {
-    if (n == 1)
-        return begin;
-    int mid = n / 2;
-    Node* left = begin;
-    int term = 1;
+template <typename T>
+Node<T>* split(Node<T>* begin, size_t n) {
+    size_t mid = n / 2;
+    Node<T>* left = begin;
+    size_t term = 1;
     while (term != mid){
         left = left->next;
         term++;
     }
-    Node* right = left->next;
+    Node<T>* right = left->next;
     left->next = nullptr;
-    left = merge(begin, mid);
-    right = merge(right, n - mid);
-    Node* ans;
+    return right;
+}
+
+template <typename T>
+Node<T>* merge(Node<T>* left, Node<T>* right, size_t s1, size_t s2) {
+    Node<T>* ans;
     if (left->value <= right->value) {
         ans = left;
         left=left->next;
@@ -28,7 +33,7 @@ Node* merge(Node* begin, int n) {
         ans = right;
         right = right->next;
     }
-    Node* last = ans;
+    Node<T>* last = ans;
     while (left != nullptr && right != nullptr) {
         if (left->value <= right->value) {
             last->next = left;
@@ -53,25 +58,48 @@ Node* merge(Node* begin, int n) {
     return ans;
 }
 
+template <typename T>
+Node<T>* sort(Node<T>* begin, size_t n) {
+    if (n == 1)
+        return begin;
+    Node<T>* right = split(begin, n);
+    Node<T>* left = begin;
+    left = sort(begin, n / 2);
+    right = sort(right, n - n / 2);
+    return merge(left, right, n / 2, n - n / 2);
+}
 
+template <typename T>
+void printList(Node<T>* begin) {
+    while (begin != nullptr){
+        std::cout << begin->value << ' ';
+        begin = begin->next;
+    }
+    std::cout << std::endl;
+}
+
+template <typename T>
+void deleteList(Node<T>* begin) {
+    while (begin != nullptr){
+        Node<T>* tmp = begin;
+        begin = begin->next;
+        delete tmp;
+    }
+}
 
 int main() {
-    int n, v;
-    scanf("%d %d", &n, &v);
-    Node* begin = new Node(v);
-    Node* cur = begin;
+    size_t n;
+    int v;
+    std::cin >> n >> v;
+    Node<int>* begin = new Node<int>(v);
+    Node<int>* cur = begin;
     for (int i = 0; i != n-1; i++) {
-        scanf("%d", &v);
-        Node* temp = new Node(v);
+        std::cin >> v;
+        Node<int>* temp = new Node<int>(v);
         cur->next = temp;
         cur = temp;
     }
-    begin = merge(begin, n);
-    while (begin != nullptr) {
-        printf("%d ", begin->value);
-        Node* temp = begin->next;
-        delete begin;
-        begin = temp;
-    }
-    printf("\n");
+    begin = sort(begin, n);
+    printList(begin);
+    deleteList(begin);
 }
