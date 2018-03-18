@@ -1,4 +1,3 @@
-
 #include<exception>
 #include<functional>
 #include<vector>
@@ -12,7 +11,7 @@ class HashMap {
         Node() {
             pref = next = nullptr;
         }
-        Node(std::pair<const KeyType, ValueType> new_item) : item(new_item) {
+        Node(std::pair<const KeyType, ValueType>& new_item) : item(new_item) {
             pref = nullptr;
             next = nullptr;
         }
@@ -21,21 +20,25 @@ class HashMap {
     std::vector<std::pair<Node*, Node*>> table;
     Hash hasher;
     size_t length, count;
+
 public:
     HashMap() : hasher(std::hash<KeyType>()) {
         HashMap new_hash(hasher);
         *this = new_hash;
     }
+
     HashMap(Hash new_hasher) : hasher(new_hasher) {
         finish = start = new Node();
         table.resize(16, {nullptr, nullptr});
         length = 16;
         count = 0;
     }
+
     void clear() {
         HashMap new_hash_map(hasher);
         *this = new_hash_map;
     }
+
     void update() {
         if (count * 2 > length) {
             std::vector<std::pair<Node*, Node*>> new_table(length * 2, {nullptr, nullptr});
@@ -66,7 +69,7 @@ public:
                 }
                 cur = tmp;
             }
-            table.resize(0);
+            table.clear();
             table = std::move(new_table);
             length *= 2;
             delete start;
@@ -74,6 +77,7 @@ public:
             finish = new_end;
         }
     }
+
     void insert(std::pair<const KeyType, ValueType> item) {
         size_t hash_value = hasher(item.first) % length;
         if (table[hash_value].first == nullptr) {
@@ -112,6 +116,7 @@ public:
             }
         }
     }
+
     template<typename Iter>
     HashMap(Iter in, Iter out, Hash new_hasher) {
         HashMap new_hash_map(new_hasher);
@@ -121,11 +126,13 @@ public:
         }
         *this = new_hash_map;
     }
+
     template<typename Iter>
     HashMap(Iter in, Iter out) : hasher(std::hash<KeyType>()) {
         HashMap new_hash(in, out, hasher);
         *this = new_hash;
     }
+
     HashMap(std::initializer_list<std::pair<const KeyType, ValueType>> list, Hash new_hasher) {
         HashMap new_hash_map(new_hasher);
         for (auto it = list.begin(); it != list.end(); it++) {
@@ -133,20 +140,25 @@ public:
         }
         *this = new_hash_map;
     }
+
     HashMap(std::initializer_list<std::pair<const KeyType, ValueType>> list) : hasher(Hash()) {
         HashMap new_hasher(list, hasher);
         *this = new_hasher;
     }
+
     size_t size() const {
         return count;
     }
+
     bool empty() const {
         return (count == 0);
     }
+
     Hash hash_function() const {
         return hasher;
     }
-    void erase(const KeyType key) {
+
+    void erase(const KeyType& key) {
         size_t hash_value = hasher(key) % length;
         if(table[hash_value].first == nullptr)
             return;
@@ -182,83 +194,104 @@ public:
             cur = cur->next;
         }
     }
+
     struct iterator {
         Node * cur;
         iterator() {
             cur = nullptr;
         }
+
         iterator(Node * tmp) {
             cur = tmp;
         }
+
         iterator operator ++(int) {
             auto tmp = cur;
             cur = cur->next;
             return iterator(tmp);
         }
+
         iterator& operator ++() {
             cur = cur->next;
             return *this;
         }
+
         std::pair<const KeyType, ValueType>& operator *() {
             return cur->item;
         }
+
         std::pair<const KeyType, ValueType>* operator ->() {
             return &cur->item;
         }
+
         bool operator == (iterator second) {
             return cur == second.cur;
         }
+
         bool operator != (iterator second) {
             return !(*this == second);
         }
     };
+
     struct const_iterator {
         const Node * cur;
         const_iterator() {
             cur = nullptr;
         }
+
         const_iterator(const Node * tmp) {
             cur = tmp;
         }
+
         const_iterator operator ++(int) {
             const Node * tmp = cur;
             cur = cur->next;
             const_iterator ans(tmp);
             return ans;
         }
+
         const_iterator& operator ++() {
             cur = cur->next;
             return *this;
         }
+
         const std::pair<const KeyType, ValueType>& operator *() const {
             return cur->item;
         }
+
         const std::pair<const KeyType, ValueType> * operator -> () const {
             return &cur->item;
         }
+
         bool operator == (const_iterator second) {
             return cur == second.cur;
         }
+
         bool operator != (const_iterator second) {
             return !(*this == second);
         }
     };
+
     iterator begin() {
         iterator it(start);
         it++;
         return it;
     }
+
     const_iterator begin() const {
         const_iterator it(start);
         it++;
         return it;
     }
+
     iterator end() {
         return iterator();
     }
+
     const_iterator end() const {
         return const_iterator();
     }
+
     iterator find(KeyType key) {
         size_t hash_value = hasher(key) % length;
         if (table[hash_value].first == nullptr)
@@ -272,6 +305,7 @@ public:
         }
         return iterator();
     }
+
     const_iterator find(KeyType key) const {
         size_t hash_value = hasher(key) % length;
         if (table[hash_value].first == nullptr)
@@ -285,6 +319,7 @@ public:
         }
         return const_iterator();
     }
+
     ValueType& operator [](KeyType key){
         insert(std::make_pair(key, ValueType()));
         size_t hash_value = hasher(key) % length;
@@ -293,6 +328,7 @@ public:
             cur = cur->next;
         return cur->item.second;
     }
+
     ValueType const & at(KeyType key) const {
         size_t hash_value = hasher(key) % length;
         if(table[hash_value].first == nullptr)
@@ -305,8 +341,9 @@ public:
         }
         throw std::out_of_range("Sorry");
     }
+
     HashMap(const HashMap& second) {
-        if (&*this == &second) {
+        if (this == &second) {
             return;
         }
         if (table.size() != 0) {
@@ -317,7 +354,7 @@ public:
                 cur = tmp;
             }
         }
-        table.resize(0);
+        table.clear();
         table.resize(second.table.size(), {nullptr, nullptr});
         hasher = second.hash_function();
         start = new Node();
@@ -340,8 +377,9 @@ public:
         length = table.size();
         count = second.count;
     }
+
     HashMap& operator =(HashMap& second) {
-        if (&*this == &second)
+        if (this == &second)
             return *this;
         if(table.size() != 0) {
             Node *cur = start;
@@ -351,7 +389,7 @@ public:
                 cur = tmp;
             }
         }
-        table.resize(0);
+        table.clear();
         table.resize(second.table.size(), {nullptr, nullptr});
         hasher = second.hash_function();
         start = new Node();
@@ -375,6 +413,7 @@ public:
         count = second.count;
         return *this;
     }
+
     ~HashMap() {
         Node * cur = start;
         while (cur != nullptr) {
